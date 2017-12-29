@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  functionName:
+    Type: String
+    Default: logs-export
+  s3DestBucket:
+    Type: String
+    Description: Environment variable
+  logGroups:
+    Type: String
+    Description: "Environment variable [list of log groups in the commna separated form: logGroup1, logGroup2, logGroup3...]" 
+
+Resources:
+  logsExportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${functionName}
+      Handler: cloud.developing.logs.aws.S3Export::handle
+      Runtime: java8
+      CodeUri: s3://lambda-jars/logs-export.jar
+      MemorySize: 256
+      Timeout: 300
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/lambda-logs-export-role
+      Environment:
+        Variables:
+          s3DestBucket: !Sub ${s3DestBucket}
+          logGroups: !Sub ${logGroups}
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: cron(11 0 * * ? *)
+  prodAlias:
+    Type: AWS::Lambda::Alias
+    Properties:     
+      FunctionName: !Ref logsExportFunction
+      FunctionVersion: $LATEST
+      Name: PROD

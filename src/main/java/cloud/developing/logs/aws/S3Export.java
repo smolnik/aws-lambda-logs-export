@@ -39,6 +39,7 @@ public class S3Export {
 			if (logGroup == null || logGroup.trim().isEmpty()) {
 				continue;
 			}
+			logGroup = logGroup.trim();
 
 			logger.log("Export for log group " + logGroup + " is about to start");
 			CreateExportTaskResult result = logs.createExportTask(
