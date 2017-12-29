@@ -30,7 +30,7 @@ public class S3Export {
 	public void handle(Context context) {
 		LambdaLogger logger = context.getLogger();
 		Instant to = Instant.now().truncatedTo(ChronoUnit.DAYS);
-		Instant from = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
+		Instant from = to.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
 		logger.log("Logs exported From = " + from);
 		logger.log("Logs exported To = " + to);
 		Iterator<String> iterator = Arrays.asList(LOG_GROUPS).iterator();
