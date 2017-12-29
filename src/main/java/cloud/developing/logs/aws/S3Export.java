@@ -3,8 +3,6 @@ package cloud.developing.logs.aws;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -33,9 +31,7 @@ public class S3Export {
 		Instant from = to.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
 		logger.log("Logs exported From = " + from);
 		logger.log("Logs exported To = " + to);
-		Iterator<String> iterator = Arrays.asList(LOG_GROUPS).iterator();
-		while (iterator.hasNext()) {
-			String logGroup = iterator.next();
+		for (String logGroup : LOG_GROUPS) {
 			if (logGroup == null || logGroup.trim().isEmpty()) {
 				continue;
 			}
