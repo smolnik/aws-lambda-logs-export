@@ -19,18 +19,18 @@ public class S3Export {
 
 	private static final String[] LOG_GROUPS = getProperty("logGroups").split(",");
 
-	private static final AWSLogs logs = AWSLogsClientBuilder.standard().withRegion(getProperty("AWS_REGION")).build();
-
 	private static final int MAX_ATTEMPTS_NUMBER = 18;
 
 	private static final int WAIT_INTERVAL_IN_SEC = 15;
 
+	private static final AWSLogs logs = AWSLogsClientBuilder.standard().withRegion(getProperty("AWS_REGION")).build();
+	
 	public void handle(Context context) {
 		LambdaLogger logger = context.getLogger();
 		Instant to = Instant.now().truncatedTo(ChronoUnit.DAYS);
 		Instant from = to.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
-		logger.log("Logs exported From = " + from);
-		logger.log("Logs exported To = " + to);
+		logger.log("Logs to be exported From = " + from);
+		logger.log("Logs to be exported To = " + to);
 		for (String logGroup : LOG_GROUPS) {
 			if (logGroup == null || logGroup.trim().isEmpty()) {
 				continue;
@@ -48,8 +48,8 @@ public class S3Export {
 			int attemptCount = 1;
 			while ((attemptCount <= MAX_ATTEMPTS_NUMBER) && (statusCode.equals("PENDING")
 					|| statusCode.equals("PENDING_CANCEL") || statusCode.equals("RUNNING"))) {
-				logger.log("Will wait until export task of id " + taskId + " is over or it timeouts");
 				logger.log("Attempt count = " + attemptCount);
+				logger.log("Will wait until export task of id " + taskId + " is over or it timeouts");
 				try {
 					TimeUnit.SECONDS.sleep(WAIT_INTERVAL_IN_SEC);
 				} catch (InterruptedException e) {
