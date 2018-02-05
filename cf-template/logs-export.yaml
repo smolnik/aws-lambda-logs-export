@@ -15,7 +15,7 @@ Resources:
   logsExportFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${functionName}
+      FunctionName: !Ref functionName
       Handler: cloud.developing.logs.aws.S3Export::handle
       Runtime: java8
       CodeUri: s3://lambda-jars/logs-export.jar
@@ -24,8 +24,8 @@ Resources:
       Role: !Sub arn:aws:iam::${AWS::AccountId}:role/lambda-logs-export-role
       Environment:
         Variables:
-          s3DestBucket: !Sub ${s3DestBucket}
-          logGroups: !Sub ${logGroups}
+          s3DestBucket: !Ref s3DestBucket
+          logGroups: !Ref logGroups
       Events:
         Timer:
           Type: Schedule
