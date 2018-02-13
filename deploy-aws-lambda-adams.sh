@@ -15,4 +15,4 @@ revisionId=$(aws lambda update-function-configuration --function-name $functionN
 echo "revisionId="$revisionId
 version=$(aws lambda update-function-code --function-name $functionName --zip-file fileb://target/logs-export.jar --publish --output text --revision-id $revisionId --query Version)
 echo "version="$version
-aws lambda update-alias --name $updateAliasName --function-name $functionName --function-version $version --description "$description"
+aws lambda update-alias --name $updateAliasName --function-name $functionName --function-version $version --revision-id $revisionI --description "$description"
