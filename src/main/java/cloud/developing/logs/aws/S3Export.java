@@ -20,6 +20,8 @@ public class S3Export {
 
 	private static final String DEST_BUCKET = getProperty("s3DestBucket");
 
+	private static final String DEST_PREFIX = getProperty("s3DestPrefix");
+
 	private static final String[] LOG_GROUPS = getProperty("logGroups").split(",");
 
 	private static final int MAX_ATTEMPTS_NUMBER = 18;
@@ -41,9 +43,9 @@ public class S3Export {
 			logGroup = logGroup.trim();
 
 			ll.log("Export for log group " + logGroup + " is about to start");
-			CreateExportTaskResult result = logs.createExportTask(
-					new CreateExportTaskRequest().withDestination(DEST_BUCKET).withDestinationPrefix(logGroup)
-							.withLogGroupName(logGroup).withFrom(from.toEpochMilli()).withTo(to.toEpochMilli()));
+			CreateExportTaskResult result = logs.createExportTask(new CreateExportTaskRequest()
+					.withDestination(DEST_BUCKET).withDestinationPrefix(DEST_PREFIX + logGroup)
+					.withLogGroupName(logGroup).withFrom(from.toEpochMilli()).withTo(to.toEpochMilli()));
 			ll.log("Create export task result = " + result);
 			String taskId = result.getTaskId();
 			String statusCode = getStatusCode(taskId);
