@@ -1,9 +1,12 @@
 package cloud.developing.logs.aws;
 
-import java.time.Duration;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
+import static java.time.Duration.ofDays;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
@@ -23,40 +26,40 @@ public class S3Export {
 
 	private static final int WAIT_INTERVAL_IN_SEC = 15;
 
-	private static final AWSLogs logs = AWSLogsClientBuilder.standard().withRegion(getProperty("AWS_REGION")).build();
-	
+	private static final AWSLogs logs = AWSLogsClientBuilder.standard().withRegion(getProp("AWS_REGION")).build();
+
 	public void handle(Context context) {
-		LambdaLogger logger = context.getLogger();
-		Instant to = Instant.now().truncatedTo(ChronoUnit.DAYS);
-		Instant from = to.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
-		logger.log("Logs to be exported From = " + from);
-		logger.log("Logs to be exported To = " + to);
+		LambdaLogger ll = context.getLogger();
+		Instant to = Instant.now().truncatedTo(DAYS);
+		Instant from = to.truncatedTo(DAYS).minus(ofDays(1));
+		ll.log("Logs to be exported From = " + from);
+		ll.log("Logs to be exported To = " + to);
 		for (String logGroup : LOG_GROUPS) {
 			if (logGroup == null || logGroup.trim().isEmpty()) {
 				continue;
 			}
 			logGroup = logGroup.trim();
 
-			logger.log("Export for log group " + logGroup + " is about to start");
+			ll.log("Export for log group " + logGroup + " is about to start");
 			CreateExportTaskResult result = logs.createExportTask(
 					new CreateExportTaskRequest().withDestination(DEST_BUCKET).withDestinationPrefix(logGroup)
 							.withLogGroupName(logGroup).withFrom(from.toEpochMilli()).withTo(to.toEpochMilli()));
-			logger.log("Create export task result = " + result);
+			ll.log("Create export task result = " + result);
 			String taskId = result.getTaskId();
 			String statusCode = getStatusCode(taskId);
-			logger.log("Export task status code = " + statusCode);
+			ll.log("Export task status code = " + statusCode);
 			int attemptCount = 1;
-			while ((attemptCount <= MAX_ATTEMPTS_NUMBER) && (statusCode.equals("PENDING")
-					|| statusCode.equals("PENDING_CANCEL") || statusCode.equals("RUNNING"))) {
-				logger.log("Attempt count = " + attemptCount);
-				logger.log("Will wait until export task of id " + taskId + " is over or it timeouts");
+			while ((attemptCount <= MAX_ATTEMPTS_NUMBER) && ("PENDING".equals(statusCode)
+					|| "PENDING_CANCEL".equals(statusCode) || "RUNNING".equals(statusCode))) {
+				ll.log("Attempt count = " + attemptCount);
+				ll.log("Will wait until export task of id " + taskId + " is over or it timeouts");
 				try {
-					TimeUnit.SECONDS.sleep(WAIT_INTERVAL_IN_SEC);
+					SECONDS.sleep(WAIT_INTERVAL_IN_SEC);
 				} catch (InterruptedException e) {
 					throw new IllegalStateException(e);
 				}
 				statusCode = getStatusCode(taskId);
-				logger.log("Export task status code = " + statusCode);
+				ll.log("Export task status code = " + statusCode);
 				attemptCount++;
 			}
 		}
@@ -67,9 +70,9 @@ public class S3Export {
 				.getStatus().getCode();
 	}
 
-	private static String getProperty(String key) {
-		String propertyValue = System.getProperty(key);
-		return propertyValue == null ? System.getenv(key) : propertyValue;
+	private static String getProp(String key) {
+		String propertyValue = getProperty(key);
+		return propertyValue == null ? getenv(key) : propertyValue;
 	}
 
 }

@@ -7,12 +7,12 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<artifactId>developing.cloud.logs-export</artifactId>
 	<packaging>jar</packaging>
-	<name>AWS Lambda - Fault Forecasting Logs Export to S3</name>
+	<name>AWS Lambda - logs export to S3</name>
 	<dependencies>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-logs</artifactId>
-			<version>1.11.255</version>
+			<version>1.11.524</version>
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
