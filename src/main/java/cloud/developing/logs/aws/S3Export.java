@@ -18,17 +18,17 @@ import com.amazonaws.services.logs.model.DescribeExportTasksRequest;
 
 public class S3Export {
 
-	private static final String DEST_BUCKET = getProperty("s3DestBucket");
+	private static final String DEST_BUCKET = getEnv("s3DestBucket");
 
-	private static final String DEST_PREFIX = getProperty("s3DestPrefix");
+	private static final String DEST_PREFIX = getEnv("s3DestPrefix");
 
-	private static final String[] LOG_GROUPS = getProperty("logGroups").split(",");
+	private static final String[] LOG_GROUPS = getEnv("logGroups").split(",");
 
 	private static final int MAX_ATTEMPTS_NUMBER = 18;
 
 	private static final int WAIT_INTERVAL_IN_SEC = 15;
 
-	private static final AWSLogs logs = AWSLogsClientBuilder.standard().withRegion(getProp("AWS_REGION")).build();
+	private static final AWSLogs logs = AWSLogsClientBuilder.standard().withRegion(getEnv("AWS_REGION")).build();
 
 	public void handle(Context context) {
 		LambdaLogger ll = context.getLogger();
@@ -43,9 +43,11 @@ public class S3Export {
 			logGroup = logGroup.trim();
 
 			ll.log("Export for log group " + logGroup + " is about to start");
-			CreateExportTaskResult result = logs.createExportTask(new CreateExportTaskRequest()
-					.withDestination(DEST_BUCKET).withDestinationPrefix(DEST_PREFIX + logGroup)
-					.withLogGroupName(logGroup).withFrom(from.toEpochMilli()).withTo(to.toEpochMilli()));
+			CreateExportTaskRequest req = new CreateExportTaskRequest().withDestination(DEST_BUCKET)
+					.withDestinationPrefix(DEST_PREFIX + logGroup).withLogGroupName(logGroup)
+					.withFrom(from.toEpochMilli()).withTo(to.toEpochMilli());
+			ll.log("CreateExportTaskRequest: " + req);
+			CreateExportTaskResult result = logs.createExportTask(req);
 			ll.log("Create export task result = " + result);
 			String taskId = result.getTaskId();
 			String statusCode = getStatusCode(taskId);
@@ -72,7 +74,7 @@ public class S3Export {
 				.getStatus().getCode();
 	}
 
-	private static String getProp(String key) {
+	private static String getEnv(String key) {
 		String propertyValue = getProperty(key);
 		return propertyValue == null ? getenv(key) : propertyValue;
 	}
